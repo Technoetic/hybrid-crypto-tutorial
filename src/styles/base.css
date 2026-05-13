@@ -1,0 +1,95 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, p { margin: 0; }
+
+h1 { font-size: var(--fs-hero); font-weight: var(--fw-bold); letter-spacing: -0.02em; }
+h2 { font-size: var(--fs-h); font-weight: var(--fw-bold); letter-spacing: -0.01em; }
+h3 { font-size: var(--fs-body); font-weight: var(--fw-bold); }
+
+button {
+  font-family: inherit;
+  font-size: var(--fs-body);
+  cursor: pointer;
+  border: var(--border-2);
+  background: var(--bg);
+  color: var(--ink);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-1);
+  min-height: 44px;
+  transition: background var(--tx), color var(--tx), border-color var(--tx);
+}
+
+button:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+button.primary {
+  background: var(--accent);
+  color: var(--ink);
+  border-color: var(--ink);
+  font-weight: var(--fw-bold);
+}
+button.primary:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+textarea, input[type="text"] {
+  font-family: inherit;
+  font-size: var(--fs-body);
+  border: var(--border-2);
+  border-radius: var(--radius-1);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.5;
+}
+
+textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--ink); }
+
+code, pre {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+}
+
+pre {
+  margin: 0;
+  background: var(--ink);
+  color: var(--bg);
+  padding: var(--space-3);
+  border-radius: var(--radius-2);
+  overflow-x: auto;
+  line-height: 1.55;
+}
+
+a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  padding: 0;
+  margin: -1px;
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>하이브리드 암호 학습소 — RSA + AES 인터랙티브 튜토리얼</title>
+  <meta name="description" content="WhatsApp·HTTPS가 쓰는 하이브리드 암호 방식을 직접 클릭하며 배우는 초보자용 인터랙티브 튜토리얼. SubtleCrypto API 기반." />
+  <link rel="stylesheet" href="./styles/tokens.css" />
+  <link rel="stylesheet" href="./styles/base.css" />
+  <link rel="stylesheet" href="./styles/layout.css" />
+  <link rel="stylesheet" href="./styles/components.css" />
+</head>
+<body>
+  <main class="app" role="main">
+
+    <header class="app-header">
+      <div class="app-title">
+        <h1>🔐 하이브리드 암호 학습소</h1>
+        <span class="subtitle">WhatsApp · HTTPS가 실제로 쓰는 방식 — 좌상단부터 차근차근 5분 만에 이해하기</span>
+      </div>
+      <div class="stage-indicator" role="progressbar" aria-valuemin="1" aria-valuemax="4" aria-label="진행 단계">
+        <div id="stage-dots" class="dots"></div>
+        <span class="label">단계 1 ~ 4</span>
+      </div>
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <section class="story" aria-label="하이브리드 암호 4단계 흐름">
+
+      <article id="stage-1" class="story-card" data-stage="keygen" aria-labelledby="stage-1-title">
+        <div class="story-head">
+          <span class="step-num">1</span>
+          <div>
+            <h2 id="stage-1-title">키쌍 만들기</h2>
+            <p class="who"><span class="tag">수신자</span> Alice가 자기 자물쇠와 열쇠를 미리 준비합니다</p>
+          </div>
+        </div>
+        <p class="tip">Alice는 누구나 메시지를 봉인해서 보낼 수 있도록 <b>자물쇠(공개키)</b>를 만들어 공유하고, 그 자물쇠를 열 수 있는 <b>열쇠(개인키)</b>는 자기만 가집니다.</p>
+        <div class="actions-stack">
+          <button id="btn-generate" type="button" class="primary">🔧 키쌍 만들기</button>
+        </div>
+        <div>
+          <div class="meta-label">🔍 공개키 지문 (sha256, 앞 12바이트)</div>
+          <div class="fingerprint" id="key-fingerprint">— 아직 생성되지 않음 —</div>
+        </div>
+        <div id="key-chips" class="chip-row"></div>
+      </article>
+
+      <article id="stage-2" class="story-card" data-stage="compose" aria-labelledby="stage-2-title">
+        <div class="story-head">
+          <span class="step-num">2</span>
+          <div>
+            <h2 id="stage-2-title">메시지 작성</h2>
+            <p class="who"><span class="tag">송신자</span> Bob이 보낼 평문을 입력합니다</p>
+          </div>
+        </div>
+        <label for="plaintext" class="meta-label">📝 평문 입력</label>
+        <textarea id="plaintext" rows="4" aria-describedby="plaintext-help">안녕 Alice! 이건 하이브리드 암호로 봉인된 비밀 메시지야.</textarea>
+        <small id="plaintext-help" class="muted">평문은 그대로 전송되지 않습니다. 다음 단계에서 봉인됩니다.</small>
+      </article>
+
+      <article id="stage-3" class="story-card" data-stage="seal" aria-labelledby="stage-3-title">
+        <div class="story-head">
+          <span class="step-num">3</span>
+          <div>
+            <h2 id="stage-3-title">하이브리드 봉인</h2>
+            <p class="who"><span class="tag">송신자</span> Bob이 AES 세션키로 본문을 잠그고, 그 세션키를 Alice 공개키로 또 잠급니다</p>
+          </div>
+        </div>
+        <div class="actions-stack">
+          <button id="btn-seal" type="button" class="primary" disabled>🔒 봉인하기 (하이브리드)</button>
+        </div>
+        <div class="kv">
+          <div class="k">세션키</div><div class="v" id="session-raw">—</div>
+          <div class="k">IV</div><div class="v" id="iv-box">—</div>
+          <div class="k">본문(암호)</div><div class="v"><div class="cipher-box" id="cipher-box">—</div></div>
+          <div class="k">봉인된 키</div><div class="v"><div class="cipher-box" id="wrapped-box">—</div></div>
+        </div>
+        <div id="flow-canvas" class="flow-canvas" aria-hidden="true"></div>
+      </article>
+
+      <article id="stage-4" class="story-card" data-stage="deliver" aria-labelledby="stage-4-title">
+        <div class="story-head">
+          <span class="step-num">4</span>
+          <div>
+            <h2 id="stage-4-title">전송 · 복호화</h2>
+            <p class="who"><span class="tag">수신자</span> Alice가 개인키로 봉인을 풀고 메시지를 읽습니다</p>
+          </div>
+        </div>
+        <div class="actions-stack">
+          <button id="btn-receive" type="button" class="primary" disabled>📬 Alice가 받기 · 열기</button>
+        </div>
+        <div id="result-box" class="plain-box" hidden aria-live="polite"></div>
+        <p class="tip">중간에 누가 패킷을 엿봐도, <b>Alice의 개인키 없이는 봉인된 세션키를 풀 수 없으므로</b> 본문도 절대 못 읽습니다.</p>
+      </article>
+
+    </section>
+
+    <details id="code-view" class="code-view" open>
+      <summary>📜 지금 단계에서 브라우저가 실제로 호출하는 코드</summary>
+      <div class="body" id="code-body"></div>
+    </details>
+
+    <section class="guide" aria-labelledby="why-title">
+      <h3 id="why-title">❓ 왜 RSA만 쓰지 않고 AES와 같이 쓸까?</h3>
+      <ul>
+        <li><b>RSA(공개키)</b>는 사전 비밀 공유 없이 메시지를 전달할 수 있어 <b>편리</b>하지만, 수학 연산이 무거워서 <b>느려요.</b></li>
+        <li><b>AES(대칭키)</b>는 빠르고 본문이 길어도 효율적이지만, 두 사람이 같은 키를 미리 공유해야 해서 <b>키 교환이 문제</b>예요.</li>
+        <li><b>하이브리드</b>는 두 방식의 장점만 결합합니다 — 본문은 빠른 AES로, 그 AES 세션키는 RSA로 봉인해 전달해요.</li>
+      </ul>
+      <div class="real-world">
+        <div class="item">
+          <div class="ttl">💬 WhatsApp</div>
+          "Before a message ever leaves your device, it's secured with a cryptographic lock, and only the recipient has the keys." — WhatsApp FAQ
+        </div>
+        <div class="item">
+          <div class="ttl">🌐 HTTPS / TLS</div>
+          "Generate session keys in order to use symmetric encryption after the handshake is complete." — Cloudflare
+        </div>
+      </div>
+    </section>
+
+    <footer class="status-bar" aria-label="현재 단계 상태 및 진행 버튼">
+      <div class="msg">
+        <span class="top" id="status-top">단계 준비 중…</span>
+        <span class="sub" id="status-sub">잠시만요</span>
+      </div>
+      <div class="actions">
+        <button id="btn-reset" type="button">↺ 처음부터</button>
+        <button id="btn-next" type="button" class="primary" disabled>다음 단계 →</button>
+      </div>
+    </footer>
+
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

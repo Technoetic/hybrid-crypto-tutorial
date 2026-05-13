@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.lighthouseci/
+.cache/
+*.log
+.DS_Store
+Thumbs.db
+
+# Step harness artifacts (not part of the deliverable)
+step_archive/
+.claude/
+scripts/
+
+# Local config
+*.local
+.env*
